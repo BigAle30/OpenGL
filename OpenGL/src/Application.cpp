@@ -124,6 +124,9 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+
+    glfwSwapInterval(1);
+
     if (glewInit() != GLEW_OK)
         std::cout << "ERROR!" << std::endl;
 
@@ -131,10 +134,10 @@ int main(void)
 
     float positions[] =
     {
-        -0.5f, -0.5f,
-        0.5f, -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f,
+        -0.5f, -0.5f, //0
+        0.5f, -0.5f,  //1
+        0.5f, 0.5f,   //2
+        -0.5f, 0.5f,  //3
     };//vertex positions
 
     unsigned int indices[]
@@ -143,23 +146,27 @@ int main(void)
         2,3,0
     };
 
-    unsigned int buffer;
+    unsigned int buffer; //buffer object
     GLCall(glGenBuffers(1, &buffer)); //generate buffer
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); //select buffer
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW)); //provide buffer with data
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW)); //provide buffer with data
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo   );
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 2 * sizeof(float), indices, GL_STATIC_DRAW);
+    unsigned int ibo; //index buffer object 
+    glGenBuffers(1, &ibo); //generate index buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);//select index buffer
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); //provide buffer with data
 
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    glUseProgram(shader);
+    GLCall(glUseProgram(shader));
 
+    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+    ASSERT(location != -1);
+    GLCall(glUniform4f(location, 1.0f, 0.0f, 1.0f, 1.0f));
+    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
